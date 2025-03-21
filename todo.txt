@@ -18,6 +18,8 @@
 - [ ] Test query processing with a valid API key
 - [ ] Run the React client and test the UI
 - [ ] Connect the React client to the backend API
+- [✅] Create comprehensive documentation in README.md
+- [✅] Initialize Git repository and push to GitHub
 
 ## Upcoming Features
 - [ ] Add authentication (JWT with Supabase Auth)
@@ -30,6 +32,11 @@
 - [ ] Add unit and integration tests
 - [ ] Implement WebSocket support for bidirectional communication
 - [✅] Create frontend demo with React
+- [ ] Add role editing functionality
+- [ ] Implement role search and filtering
+- [ ] Add role templates for quick creation
+- [ ] Implement role versioning and history
+- [ ] Add support for LangGraph agents and RAG pipelines
 
 ## Improvements
 - [ ] Optimize vector similarity search
@@ -38,3 +45,9 @@
 - [ ] Add support for more LLM providers
 - [ ] Implement database persistence for roles and memories
 - [ ] Add support for role-based access control
+- [ ] Improve AI-generated content formatting with standardized markdown
+- [ ] Enhance markdown parsing in client components
+- [ ] Add CSS styling for formatted AI content
+- [ ] Implement secure API key management via environment variables
+- [ ] Add contextual analysis capabilities for specialized domains
+- [ ] Optimize prompt management with centralized prompt templates
