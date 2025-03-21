@@ -1,5 +1,7 @@
 # Role-Specific Context MCP Server
 
+*By IntelliSync Solutions*
+
 A Python-based Model Context Protocol (MCP) server that orchestrates AI agents with role-specific context management, built with FastAPI and a modern React client.
 
 ![MCP Server Architecture](https://via.placeholder.com/800x400?text=MCP+Server+Architecture)
@@ -545,3 +547,12 @@ docker run -p 8000:8000 --env-file .env role-specific-mcp
 - Support for LangGraph agents and RAG pipelines
 - Enhanced authentication and security features
 
+---
+
+## About
+
+This documentation and software is authored by **IntelliSync Solutions**  
+Written by: Chris June  
+Last Updated: March 21, 2025
+
+© 2025 IntelliSync Solutions. All rights reserved.
