@@ -23,7 +23,7 @@
 
 ## Upcoming Features
 - [ ] Add authentication (JWT with Supabase Auth)
-- [ ] Implement vector database integration (ChromaDB)
+- [ ] Implement vector database integration (ChromaDB, Supabase??)
 - [ ] Add real-time context switching based on triggers
 - [ ] Implement streaming responses
 - [ ] Add rate limiting
@@ -37,6 +37,15 @@
 - [ ] Add role templates for quick creation
 - [ ] Implement role versioning and history
 - [ ] Add support for LangGraph agents and RAG pipelines
+
+## Advanced Memory Features
+- [ ] Implement shared memory collection across AI agents
+- [ ] Create hierarchical memory access control
+- [ ] Design role-based memory inheritance mechanism
+- [ ] Add configurable memory sharing permissions
+- [ ] Develop semantic search for cross-role memory retrieval
+- [ ] Implement memory embedding and similarity scoring
+- [ ] Create memory tagging and categorization system
 
 ## Improvements
 - [ ] Optimize vector similarity search

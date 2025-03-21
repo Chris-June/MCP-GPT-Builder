@@ -541,11 +541,21 @@ docker run -p 8000:8000 --env-file .env role-specific-mcp
 
 ## Future Roadmap
 
-- Vector database integration (ChromaDB, Weaviate) for semantic memory retrieval
+### Core Platform Enhancements
+- Vector database integration (ChromaDB, Supabase) for semantic memory retrieval
 - Real-time context switching based on triggers
 - Multi-modal context support
 - Support for LangGraph agents and RAG pipelines
 - Enhanced authentication and security features
+
+### Advanced Memory Architecture
+- Shared memory collections accessible across multiple AI agents
+- Hierarchical memory access control system
+- Role-based memory inheritance mechanisms
+- Configurable memory sharing permissions
+- Cross-role semantic search capabilities
+- Memory embedding and similarity scoring
+- Memory tagging and categorization system
 
 ---
 
