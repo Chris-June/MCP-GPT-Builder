@@ -80,6 +80,71 @@ await processQueryStreaming(
 - Network interruptions may cause streaming to fail
 - Some complex formatting may appear differently when streamed vs. complete responses
 
+## Implementation Notes
+
+### Bug Fixes
+
+- **Response Persistence**: Fixed an issue where streamed responses would disappear upon completion. The fix uses a local variable to accumulate the response, ensuring that the complete content is available when the stream finishes.
+  ```typescript
+  // In handleStreamingResponse function
+  
+  // Keep track of the accumulated response in a local variable
+  let accumulatedResponse = ''
+  
+  // In the streaming callbacks
+  onChunk: (chunk) => {
+    // Update both the state and our local accumulator
+    accumulatedResponse += chunk
+    setStreamedResponse(accumulatedResponse)
+  },
+  onComplete: () => {
+    // Use the accumulated response which is guaranteed to be complete
+    const newMessage = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: accumulatedResponse, // Use the accumulated response
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, newMessage])
+    setStreamedResponse('')
+    setIsStreaming(false)
+  }
+  ```
+
+- **Duplicate Responses**: Fixed an issue where responses would appear twice in the chat history. The fix ensures that the `onComplete` callback is only called once at the end of stream processing.
+  ```typescript
+  // In processQueryStreaming function
+  
+  // First fix: Don't call onComplete when [DONE] message is received
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = line.substring(6)
+      if (data === '[DONE]') {
+        // The server sent a DONE message, we'll call onComplete at the end of the loop
+        // Don't call options.onComplete() here to avoid duplicate calls
+      } else if (!data.startsWith('Error:')) {
+        options.onChunk(data)
+      } else {
+        options.onError(new Error(data))
+      }
+    }
+  }
+  
+  // Second fix: Remove the duplicate onComplete call in the reader loop
+  while (true) {
+    const { done, value } = await reader.read()
+    
+    if (done) {
+      // Don't call options.onComplete() here, we'll call it once at the end
+      break
+    }
+    // ...rest of the loop code
+  }
+  
+  // Call onComplete once at the end of the stream processing
+  options.onComplete()
+  ```
+
 ## Future Improvements
 
 - Add support for streaming with memory creation

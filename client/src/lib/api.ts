@@ -115,7 +115,7 @@ export async function processQueryStreaming(
       const { done, value } = await reader.read()
       
       if (done) {
-        options.onComplete()
+        // Don't call options.onComplete() here, we'll call it once at the end
         break
       }
       
@@ -127,7 +127,8 @@ export async function processQueryStreaming(
         if (line.startsWith('data: ')) {
           const data = line.substring(6)
           if (data === '[DONE]') {
-            options.onComplete()
+            // The server sent a DONE message, we'll call onComplete at the end of the loop
+            // Don't call options.onComplete() here to avoid duplicate calls
           } else if (!data.startsWith('Error:')) {
             options.onChunk(data)
           } else {
@@ -136,6 +137,8 @@ export async function processQueryStreaming(
         }
       }
     }
+    // Call onComplete once at the end of the stream processing
+    options.onComplete()
   } catch (error) {
     options.onError(error instanceof Error ? error : new Error(String(error)))
   }

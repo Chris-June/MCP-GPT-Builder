@@ -66,6 +66,8 @@
 - [ ] Add contextual analysis capabilities for specialized domains
 - [ ] Optimize prompt management with centralized prompt templates
 - [✅] Add streaming progress indicators in the UI
+- [✅] Fix streaming response persistence bug (response no longer disappears upon completion)
+- [✅] Fix duplicate responses in streaming implementation
 - [ ] Implement streaming token counting and rate limiting
 - [ ] Add support for streaming with different LLM providers
 - [ ] Optimize streaming performance for high-traffic scenarios
