@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, User, Bot, Loader2 } from 'lucide-react'
+import { Send, User, Bot, Loader2, Radio } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
-import { fetchRoles, processQuery } from '@/lib/api'
+import { fetchRoles, processQuery, processQueryStreaming } from '@/lib/api'
 import type { Role } from '@/types'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 
 interface Message {
   id: string
@@ -25,6 +27,9 @@ export default function ChatPage() {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(initialRoleId)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
+  const [useStreaming, setUseStreaming] = useState(true)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [streamedResponse, setStreamedResponse] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
   const { data: roles, isLoading: rolesLoading } = useQuery({
@@ -52,9 +57,53 @@ export default function ChatPage() {
     },
   })
   
+  // Handle streaming response
+  const handleStreamingResponse = async (roleId: string, query: string) => {
+    setIsStreaming(true)
+    setStreamedResponse('')
+    
+    try {
+      await processQueryStreaming(
+        { role_id: roleId, query },
+        {
+          onChunk: (chunk) => {
+            setStreamedResponse(prev => prev + chunk)
+          },
+          onComplete: () => {
+            // Add the complete message to the messages array
+            const newMessage: Message = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: streamedResponse,
+              timestamp: new Date(),
+            }
+            setMessages(prev => [...prev, newMessage])
+            setStreamedResponse('')
+            setIsStreaming(false)
+          },
+          onError: (error) => {
+            toast({
+              title: 'Streaming Error',
+              description: `Failed to stream response: ${error.message}`,
+              variant: 'destructive',
+            })
+            setIsStreaming(false)
+          }
+        }
+      )
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to start streaming: ${error instanceof Error ? error.message : String(error)}`,
+        variant: 'destructive',
+      })
+      setIsStreaming(false)
+    }
+  }
+  
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, streamedResponse])
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -72,12 +121,19 @@ export default function ChatPage() {
     }
     
     setMessages((prev) => [...prev, newMessage])
+    const currentInput = input
     setInput('')
     
-    queryMutation.mutate({
-      role_id: selectedRoleId,
-      query: input,
-    })
+    if (useStreaming) {
+      // Use streaming API
+      handleStreamingResponse(selectedRoleId, currentInput)
+    } else {
+      // Use regular API
+      queryMutation.mutate({
+        role_id: selectedRoleId,
+        query: currentInput,
+      })
+    }
   }
   
   const selectedRole = roles?.find(role => role.id === selectedRoleId)
@@ -117,9 +173,19 @@ export default function ChatPage() {
               <h2 className="font-semibold">{selectedRole?.name}</h2>
               <p className="text-sm text-muted-foreground">{selectedRole?.description}</p>
             </div>
-            <Button variant="outline" onClick={() => setSelectedRoleId(null)}>
-              Change Role
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="streaming-mode"
+                  checked={useStreaming}
+                  onCheckedChange={setUseStreaming}
+                />
+                <Label htmlFor="streaming-mode">Streaming</Label>
+              </div>
+              <Button variant="outline" onClick={() => setSelectedRoleId(null)}>
+                Change Role
+              </Button>
+            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto border rounded-lg mb-4 p-4 bg-muted/10">
@@ -174,6 +240,34 @@ export default function ChatPage() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                
+                {/* Streaming response */}
+                {isStreaming && streamedResponse && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <div className="max-w-[80%] p-4 rounded-lg bg-card border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Bot className="h-4 w-4" />
+                        <span className="font-medium">{selectedRole?.name}</span>
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full animate-pulse">
+                          Streaming...
+                        </span>
+                      </div>
+                      
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{streamedResponse}</ReactMarkdown>
+                      </div>
+                      
+                      <div className="mt-2 text-xs opacity-70 text-right">
+                        {new Date().toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -186,15 +280,25 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={`Message ${selectedRole?.name}...`}
               className="flex-1 p-3 rounded-lg border bg-background"
-              disabled={queryMutation.isPending}
+              disabled={queryMutation.isPending || isStreaming}
             />
-            <Button type="submit" disabled={!input.trim() || queryMutation.isPending}>
-              {queryMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <Button type="submit" disabled={!input.trim() || queryMutation.isPending || isStreaming}>
+              {isStreaming ? (
+                <>
+                  <Radio className="h-4 w-4 animate-pulse" />
+                  <span className="ml-2 sr-only md:not-sr-only">Streaming...</span>
+                </>
+              ) : queryMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="ml-2 sr-only md:not-sr-only">Loading...</span>
+                </>
               ) : (
-                <Send className="h-4 w-4" />
+                <>
+                  <Send className="h-4 w-4" />
+                  <span className="ml-2 sr-only md:not-sr-only">Send</span>
+                </>
               )}
-              <span className="ml-2 sr-only md:not-sr-only">Send</span>
             </Button>
           </form>
         </>

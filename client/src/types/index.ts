@@ -33,3 +33,15 @@ export interface ProcessQueryResponse {
   query: string
   response: string
 }
+
+export interface StreamingQueryRequest {
+  role_id: string
+  query: string
+  custom_instructions?: string
+}
+
+export interface StreamingOptions {
+  onChunk: (chunk: string) => void
+  onComplete: () => void
+  onError: (error: Error) => void
+}

@@ -24,8 +24,13 @@
 ## Upcoming Features
 - [ ] Add authentication (JWT with Supabase Auth)
 - [ ] Implement vector database integration (ChromaDB, Supabase??)
-- [ ] Add real-time context switching based on triggers
-- [ ] Implement streaming responses
+- [✅] Add real-time context switching based on triggers
+- [✅] Implement streaming responses
+  - [✅] Server-side streaming with SSE format
+  - [✅] Client-side streaming implementation in chat component
+  - [✅] Toggle UI for enabling/disabling streaming
+  - [✅] Visual indicators for streaming status
+  - [✅] Comprehensive documentation
 - [ ] Add rate limiting
 - [ ] Add multi-modal context support
 - [ ] Develop client SDK for easier integration
@@ -54,9 +59,17 @@
 - [ ] Add support for more LLM providers
 - [ ] Implement database persistence for roles and memories
 - [ ] Add support for role-based access control
-- [ ] Improve AI-generated content formatting with standardized markdown
-- [ ] Enhance markdown parsing in client components
-- [ ] Add CSS styling for formatted AI content
+- [✅] Improve AI-generated content formatting with standardized markdown
+- [✅] Enhance markdown parsing in client components
+- [✅] Add CSS styling for formatted AI content
 - [ ] Implement secure API key management via environment variables
 - [ ] Add contextual analysis capabilities for specialized domains
 - [ ] Optimize prompt management with centralized prompt templates
+- [✅] Add streaming progress indicators in the UI
+- [ ] Implement streaming token counting and rate limiting
+- [ ] Add support for streaming with different LLM providers
+- [ ] Optimize streaming performance for high-traffic scenarios
+- [ ] Add pause/resume functionality for streaming responses
+- [ ] Implement error recovery for interrupted streams
+- [ ] Add typing indicators and animations for streaming responses
+- [ ] Support streaming with memory creation

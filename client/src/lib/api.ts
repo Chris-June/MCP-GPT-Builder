@@ -1,4 +1,4 @@
-import type { Role, Memory, ProcessQueryRequest, ProcessQueryResponse } from '@/types'
+import type { Role, Memory, ProcessQueryRequest, ProcessQueryResponse, StreamingQueryRequest, StreamingOptions } from '@/types'
 
 export interface CreateMemoryRequest {
   role_id: string
@@ -79,6 +79,66 @@ export async function processQuery(request: ProcessQueryRequest): Promise<Proces
     throw new Error('Failed to process query')
   }
   return await response.json()
+}
+
+/**
+ * Process a query with streaming response
+ * @param request The streaming query request
+ * @param options Callbacks for handling streaming events
+ */
+export async function processQueryStreaming(
+  request: StreamingQueryRequest, 
+  options: StreamingOptions
+): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE}/roles/process/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    })
+    
+    if (!response.ok) {
+      throw new Error(`Failed to process streaming query: ${response.status}`)
+    }
+    
+    if (!response.body) {
+      throw new Error('ReadableStream not supported in this browser')
+    }
+    
+    // Process the stream
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    
+    while (true) {
+      const { done, value } = await reader.read()
+      
+      if (done) {
+        options.onComplete()
+        break
+      }
+      
+      // Decode the chunk and process SSE format
+      const chunk = decoder.decode(value)
+      const lines = chunk.split('\n\n')
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.substring(6)
+          if (data === '[DONE]') {
+            options.onComplete()
+          } else if (!data.startsWith('Error:')) {
+            options.onChunk(data)
+          } else {
+            options.onError(new Error(data))
+          }
+        }
+      }
+    }
+  } catch (error) {
+    options.onError(error instanceof Error ? error : new Error(String(error)))
+  }
 }
 
 export async function fetchMemories(roleId: string): Promise<Memory[]> {
